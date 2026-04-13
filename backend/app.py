@@ -242,6 +242,7 @@ def stop_blast():
 def blast_status():
     def generate():
         last_index = 0
+        sent_final = False
         while True:
             with blast_lock:
                 events = blast_state["events"][last_index:]
@@ -254,10 +255,12 @@ def blast_status():
                     "events": events,
                 }
             yield f"data: {json.dumps(state)}\n\n"
-            if not state["running"] and last_index > 0 and (
-                not events or events[-1].get("type") in ("complete", "stopped")
-            ):
-                break
+            # Check if blast has finished
+            if not state["running"] and state["total"] > 0:
+                if sent_final:
+                    break
+                # Send one more tick so the client gets the final state
+                sent_final = True
             time.sleep(0.5)
 
     return Response(generate(), mimetype="text/event-stream", headers={

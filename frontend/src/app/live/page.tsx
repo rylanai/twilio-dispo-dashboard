@@ -36,8 +36,16 @@ export default function LiveFeedPage() {
       if (data.events?.length > 0) {
         setEvents((prev) => [...prev, ...data.events]);
       }
+      // Close connection when blast is done to prevent reconnect loop
+      if (!data.running && data.total > 0) {
+        es.close();
+        setConnected(false);
+      }
     };
-    es.onerror = () => setConnected(false);
+    es.onerror = () => {
+      es.close();
+      setConnected(false);
+    };
     return () => es.close();
   }, []);
 
