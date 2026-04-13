@@ -16,6 +16,7 @@ CORS(app, origins="*")
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.environ.get("TWILIO_PHONE_NUMBER")
+TWILIO_MESSAGING_SERVICE_SID = os.environ.get("TWILIO_MESSAGING_SERVICE_SID")
 
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
@@ -174,11 +175,12 @@ def send_blast(contacts, template_body, field_mapping):
             continue
 
         try:
-            twilio_client.messages.create(
-                body=message,
-                from_=TWILIO_PHONE_NUMBER,
-                to=phone,
-            )
+            send_kwargs = {"body": message, "to": phone}
+            if TWILIO_MESSAGING_SERVICE_SID:
+                send_kwargs["messaging_service_sid"] = TWILIO_MESSAGING_SERVICE_SID
+            else:
+                send_kwargs["from_"] = TWILIO_PHONE_NUMBER
+            twilio_client.messages.create(**send_kwargs)
             with blast_lock:
                 blast_state["sent"] += 1
                 blast_state["events"].append({
