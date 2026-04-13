@@ -64,6 +64,15 @@ def init_db():
             reason TEXT,
             created_at TEXT DEFAULT (datetime('now'))
         );
+        CREATE TABLE IF NOT EXISTS lists (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            columns TEXT NOT NULL,
+            data TEXT NOT NULL,
+            row_count INTEGER DEFAULT 0,
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
     """)
     conn.close()
 
@@ -118,6 +127,71 @@ def update_template(tid):
 def delete_template(tid):
     conn = get_db()
     conn.execute("DELETE FROM templates WHERE id = ?", (tid,))
+    conn.commit()
+    conn.close()
+    return jsonify({"deleted": True})
+
+
+# ── Lists CRUD ──
+@app.route("/lists", methods=["GET"])
+def list_lists():
+    conn = get_db()
+    rows = conn.execute("SELECT id, name, columns, row_count, created_at, updated_at FROM lists ORDER BY created_at DESC").fetchall()
+    conn.close()
+    return jsonify([dict(r) for r in rows])
+
+
+@app.route("/lists/<int:lid>", methods=["GET"])
+def get_list(lid):
+    conn = get_db()
+    row = conn.execute("SELECT * FROM lists WHERE id = ?", (lid,)).fetchone()
+    conn.close()
+    if not row:
+        return jsonify({"error": "Not found"}), 404
+    result = dict(row)
+    result["columns"] = json.loads(result["columns"])
+    result["data"] = json.loads(result["data"])
+    return jsonify(result)
+
+
+@app.route("/lists", methods=["POST"])
+def create_list():
+    data = request.json
+    columns_json = json.dumps(data["columns"])
+    data_json = json.dumps(data["data"])
+    row_count = len(data["data"])
+    conn = get_db()
+    cur = conn.execute(
+        "INSERT INTO lists (name, columns, data, row_count) VALUES (?, ?, ?, ?)",
+        (data["name"], columns_json, data_json, row_count),
+    )
+    conn.commit()
+    lst = conn.execute("SELECT id, name, columns, row_count, created_at, updated_at FROM lists WHERE id = ?", (cur.lastrowid,)).fetchone()
+    conn.close()
+    return jsonify(dict(lst)), 201
+
+
+@app.route("/lists/<int:lid>", methods=["PUT"])
+def update_list(lid):
+    data = request.json
+    columns_json = json.dumps(data["columns"])
+    data_json = json.dumps(data["data"])
+    row_count = len(data["data"])
+    conn = get_db()
+    conn.execute(
+        "UPDATE lists SET name = ?, columns = ?, data = ?, row_count = ?, updated_at = datetime('now') WHERE id = ?",
+        (data["name"], columns_json, data_json, row_count, lid),
+    )
+    conn.commit()
+    lst = conn.execute("SELECT id, name, columns, row_count, created_at, updated_at FROM lists WHERE id = ?", (lid,)).fetchone()
+    conn.close()
+    return jsonify(dict(lst))
+
+
+@app.route("/lists/<int:lid>", methods=["DELETE"])
+def delete_list(lid):
+    conn = get_db()
+    conn.execute("DELETE FROM lists WHERE id = ?", (lid,))
     conn.commit()
     conn.close()
     return jsonify({"deleted": True})

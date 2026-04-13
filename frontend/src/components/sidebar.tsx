@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { href: "/", label: "Templates", icon: FileIcon },
+  { href: "/lists", label: "Lists", icon: ListIcon },
   { href: "/blast", label: "Blast", icon: RocketIcon },
   { href: "/live", label: "Live Feed", icon: RadioIcon },
   { href: "/replies", label: "Replies", icon: InboxIcon },
@@ -88,6 +89,17 @@ function InboxIcon({ active }: { active: boolean }) {
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke={active ? "#fff" : "currentColor"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9h3l1 2h2l1-2h3"/>
       <path d="M3.5 4L2 9v4a1 1 0 001 1h10a1 1 0 001-1V9l-1.5-5a1 1 0 00-1-.96H4.5a1 1 0 00-1 .96z"/>
+    </svg>
+  );
+}
+
+function ListIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke={active ? "#fff" : "currentColor"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 4h12M2 8h12M2 12h12"/>
+      <circle cx="2" cy="4" r="0.5" fill={active ? "#fff" : "currentColor"}/>
+      <circle cx="2" cy="8" r="0.5" fill={active ? "#fff" : "currentColor"}/>
+      <circle cx="2" cy="12" r="0.5" fill={active ? "#fff" : "currentColor"}/>
     </svg>
   );
 }
