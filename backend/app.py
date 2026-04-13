@@ -20,7 +20,8 @@ TWILIO_MESSAGING_SERVICE_SID = os.environ.get("TWILIO_MESSAGING_SERVICE_SID")
 
 twilio_client = Client(TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "database.db")
+DB_DIR = "/data" if os.path.isdir("/data") else os.path.dirname(__file__)
+DB_PATH = os.path.join(DB_DIR, "database.db")
 
 blast_state = {
     "running": False,
